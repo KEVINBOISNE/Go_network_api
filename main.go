@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"encoding/json"
+	"encoding/csv"
+	"os"
   
 )
 
@@ -53,6 +55,44 @@ fmt.Println(string(body))
         fmt.Println("Latitude :", lat)
         fmt.Println("Longitude:", lon)
     }
+
+	// Open the CSV file
+   file, err := os.Open("2018_01_Sites_mobiles_2G_3G_4G_France_metropolitaine_L93_ver2(3).csv")
+   if err != nil {
+       panic(err)
+   }
+   defer file.Close()
+
+    // Read the CSV data
+   reader := csv.NewReader(file)
+   reader.FieldsPerRecord = -1 // Allow variable number of fields
+   data, err := reader.ReadAll()
+   if err != nil {
+       panic(err)
+   }
+   
+   // Print the CSV data
+   for _, row := range data {
+       for _, col := range row {
+           fmt.Printf("%s,", col)
+       }
+       fmt.Println()
+   }
+
+   var result_csv Response
+    err = json.Unmarshal(body, &result)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    if len(result_csv.Features) > 0 {
+        lon := result_csv.Features[0].Geometry.Coordinates[0]
+        lat := result_csv.Features[0].Geometry.Coordinates[1]
+
+        fmt.Println("Latitude_csv :", lat)
+        fmt.Println("Longitude_csv:", lon)
+    }
+
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "Bienvenue sur mon API Go !")
